@@ -6,8 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+# Note: Avoid using secrets directly in root env if they cause interpolation issues.
 env:
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/go-url-shortener-cicd-aws
+  REGISTRY_REPO: go-url-shortener-cicd-aws
 
 jobs:
   # ─────────────────────────────────────────────
@@ -16,7 +17,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,35 +39,51 @@ jobs:
     name: Build & Trivy Scan
     runs-on: ubuntu-latest
     needs: test
+    env:
+      # Constructing the full image name safely inside the job context
+      FULL_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vacancies.REGISTRY_REPO || 'go-url-shortener-cicd-aws' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Using the action to build locally without pushing ensures buildx parses arguments perfectly
       - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true # This loads the image into the local Docker daemon for Trivy to scan
+          tags: ${{ env.FULL_IMAGE_NAME }}:${{ github.sha }}
 
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image-ref: ${{ env.FULL_IMAGE_NAME }}:${{ github.sha }}
           format: table
           exit-code: "1"
           severity: CRITICAL,HIGH
           ignore-unfixed: true
 
   # ─────────────────────────────────────────────
-  # JOB 3: Push to Docker Hub, Only runs on push to main — not on PRs
+  # JOB 3: Push to Docker Hub
   # ─────────────────────────────────────────────
   push:
     name: Push to Docker Hub
     runs-on: ubuntu-latest
     needs: build-and-scan
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      FULL_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ vacancies.REGISTRY_REPO || 'go-url-shortener-cicd-aws' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -81,5 +97,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.FULL_IMAGE_NAME }}:latest
+            ${{ env.FULL_IMAGE_NAME }}:${{ github.sha }}
