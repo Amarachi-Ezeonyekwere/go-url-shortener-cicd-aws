@@ -1,0 +1,20 @@
+# Compiled binary
+url-shortener
+
+# Go build cache
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Environment files
+.env
+.env.*
+
+# Editor
+.vscode/
+.idea/
+*.swp
