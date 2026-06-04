@@ -3,8 +3,16 @@ name: CI — Build & Push to AWS ECR
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.trivyignore'
+      - '.gitignore'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.trivyignore'
+      - '.gitignore'
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
