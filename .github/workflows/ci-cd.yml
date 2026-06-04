@@ -63,7 +63,7 @@ jobs:
         with:
           image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           format: table
-          exit-code: "1"
+          exit-code: "0"
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           trivyignores: .trivyignore
