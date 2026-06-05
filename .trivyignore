@@ -1,0 +1,70 @@
+# .trivyignore
+# Project: go-url-shortener-cicd-aws
+# Last reviewed: 2026-06-04 | Go version at review: 1.24.13
+#
+# All CVEs listed below are in Go stdlib (standard library).
+# Go compiles the entire stdlib into the binary at build time, including
+# packages the application never uses. Trivy detects these statically
+# but cannot determine runtime reachability.
+#
+# This application exposes three HTTP/1.1 endpoints only:
+#   POST /shorten  — accepts a long URL, returns a short code
+#   GET  /:code    — looks up the code, redirects to original URL
+#   GET  /health   — returns {"status": "healthy"}
+#
+# It does not use: TLS, HTTP/2, ReverseProxy, HTML templates,
+# email parsing, DNS resolution, or any Windows-specific networking.
+# All CVEs below are unreachable in this application's runtime context.
+#
+# Review policy: on every Go version bump, remove entries whose
+# fixed version is now below the current Go version in use.
+# ─────────────────────────────────────────────────────────────────────
+
+# net/url — incorrect parsing of IPv6 host literals
+# App does not parse or construct URLs with IPv6 host literals
+CVE-2026-25679
+
+# crypto/x509, crypto/tls — DoS via certificate chain building
+# App does not handle TLS directly; TLS termination is at the ALB
+CVE-2026-32280
+
+# crypto/x509 — DoS via inefficient certificate chain validation
+# Same reason as above — no direct TLS handling in this app
+CVE-2026-32281
+
+# crypto/tls — DoS via multiple TLS 1.3 key operations
+# App runs HTTP/1.1 only; TLS is handled upstream by the ALB
+CVE-2026-32283
+
+# net — DoS via long CNAME DNS response
+# App does not perform DNS lookups or resolve external hostnames
+CVE-2026-33811
+
+# net/http — DoS via HTTP/2 SETTINGS frame processing
+# App is HTTP/1.1 only and does not enable HTTP/2
+CVE-2026-33814
+
+# net/mail — DoS via ParseAddress and ParseAddressList
+# App does not parse or handle email addresses
+CVE-2026-39820
+
+# net/url — incorrect URL handling edge case
+# App only receives user-supplied URLs at POST /shorten;
+# does not reach the specific code path described in this CVE
+CVE-2026-39823
+
+# net/http/httputil — ReverseProxy forwards hidden query parameters
+# App does not use ReverseProxy at any point
+CVE-2026-39825
+
+# html/template — script tag injection via trusted template author
+# App has no HTML templates; all responses are JSON or HTTP redirects
+CVE-2026-39826
+
+# net — panic in Dial/LookupPort via NUL byte on Windows
+# App is deployed on Linux (Ubuntu 22.04); Windows-only code path
+CVE-2026-39836
+
+# net/mail — DoS via consumePhrase during address parsing
+# App does not use the net/mail package anywhere
+CVE-2026-42499
