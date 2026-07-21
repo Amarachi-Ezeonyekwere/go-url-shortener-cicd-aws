@@ -253,6 +253,9 @@ The pipeline triggers automatically. All three jobs should go green.
 **Trivy with documented triage** — Security scanning runs on every build. Findings are visible in pipeline logs. Acknowledged CVEs are documented in `.trivyignore` with reasons, not silently suppressed.
 
 ---
+Companion repo for infra
+
+[go-url-shortener-infra-aws](https://github.com/Amarachi-Ezeonyekwere/go-url-shortener-infra-aws)
 
 *Part of an ongoing DevOps portfolio by Amarachi Ezeonyekwere — Cloud & DevOps Engineer.*
 *Other projects: [github.com/Amarachi-Ezeonyekwere](https://github.com/Amarachi-Ezeonyekwere)*
